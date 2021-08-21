@@ -26,9 +26,6 @@ def reverse_image_search(img_location):
     # returning the new location of the search
     return response.headers['Location']
 
-search_result = reverse_image_search(FILE_LOCATION)
-print(search_result)
-
 def search_related_images_for_name(search_result, amount_of_pages=5):
     """
         Utilizes the previous reverse image search to find similar images
@@ -55,7 +52,6 @@ def search_related_images_for_name(search_result, amount_of_pages=5):
     # similar images to the one provided in the google search
     images_universal_xpath = "//div[@data-attrid='images universal']"
     images_universal_elements = iur_div.find_elements_by_xpath(images_universal_xpath)
-    print(len(images_universal_elements))
 
     # getting the data-lpage attribute for each iur element
     # appending that attribute to a data_page
@@ -67,6 +63,37 @@ def search_related_images_for_name(search_result, amount_of_pages=5):
     driver.close()
 
     # returning the data_page
-    return data_page
+    return data_page 
 
-search_related_images_for_name(search_result)
+def create_email_file(img_location, data_pages):
+    """
+        This creates the file "bird_images_location.txt"
+        or it appends to it if it already exists. Additionally,
+        this function adds the img_location on one line then
+        all the data_pages are on the same line separated by a comma.
+
+        Parameters:
+            img_location (string): The string location to the image.
+            data_pages (list of strings): The links of similar images to the
+            one provided.
+        
+        Returns:
+            None
+    """
+    # Creating the file or appending to it if it already exists.
+    with open("bird_images_locations.txt", "a") as bird_file:
+        # the file will be formated as follows:
+        # img_location
+        # data_page,data_page,data_page,...
+        # and so on
+        bird_file.write(img_location)
+        # creating each comma separated data page
+        comma_separated_data_pages = "\n"
+        for i in range(len(data_pages)-1):
+            data_page = data_pages[i]
+            comma_separated_data_pages += data_page + ','
+        comma_separated_data_pages += data_pages[-1]
+        bird_file.write(comma_separated_data_pages + "\n")
+search_result = reverse_image_search(FILE_LOCATION)
+data_pages = search_related_images_for_name(search_result)
+create_email_file(FILE_LOCATION, data_pages)
