@@ -1,12 +1,7 @@
 # importing the necessary modules
 import requests
 from selenium import webdriver
-import os
-
-# setting up constants for the program
-LINK = "https://www.google.com/searchbyimage/upload"
-FILE_LOCATION = os.getcwd() + r"/bird_images/fuwd-2.jpg"
-GECKO_PATH = os.getcwd() + r"/geckodriver/geckodriver.exe"
+import birdfeeder_constants as bfc
 
 def reverse_image_search(img_location):
     """
@@ -22,7 +17,7 @@ def reverse_image_search(img_location):
     # the file data section
     file_data = {'encoded_image': (img_location, open(img_location, 'rb')), 'image_content': ''}
     # making a post request with the image
-    response = requests.post(LINK, files = file_data, allow_redirects=False)
+    response = requests.post(bfc.LINK, files = file_data, allow_redirects=False)
     # returning the new location of the search
     return response.headers['Location']
 
@@ -42,7 +37,7 @@ def search_related_images_for_name(search_result, amount_of_pages=5):
                 to the reverse image search.
     """
     # starting the driver for selenium
-    driver = webdriver.Firefox(executable_path=GECKO_PATH)
+    driver = webdriver.Firefox(executable_path=bfc.GECKO_PATH)
     # connecting the driver to the search result
     driver.get(search_result)
     
@@ -81,7 +76,7 @@ def create_email_file(img_location, data_pages):
             None
     """
     # Creating the file or appending to it if it already exists.
-    with open("bird_images_locations.txt", "a") as bird_file:
+    with open(bfc.BIRD_LOCATION, "a") as bird_file:
         # the file will be formated as follows:
         # img_location
         # data_page,data_page,data_page,...
@@ -94,6 +89,6 @@ def create_email_file(img_location, data_pages):
             comma_separated_data_pages += data_page + ','
         comma_separated_data_pages += data_pages[-1]
         bird_file.write(comma_separated_data_pages + "\n")
-search_result = reverse_image_search(FILE_LOCATION)
-data_pages = search_related_images_for_name(search_result)
-create_email_file(FILE_LOCATION, data_pages)
+# search_result = reverse_image_search(FILE_LOCATION)
+# data_pages = search_related_images_for_name(search_result)
+# create_email_file(FILE_LOCATION, data_pages)
