@@ -15,9 +15,10 @@ def reverse_image_search(img_location):
                     search for the image.
     """
     # the file data section
-    file_data = {'encoded_image': (img_location, open(img_location, 'rb')), 'image_content': ''}
+    file_data = {'encoded_image': (img_location, open(img_location, 'rb')),
+                'image_content': ''}
     # making a post request with the image
-    response = requests.post(bfc.LINK, files = file_data, allow_redirects=False)
+    response = requests.post(bfc.LINK, files = file_data, allow_redirects = False)
     # returning the new location of the search
     return response.headers['Location']
 
@@ -83,12 +84,7 @@ def create_email_file(img_location, data_pages):
         # and so on
         bird_file.write(img_location)
         # creating each comma separated data page
-        comma_separated_data_pages = "\n"
-        for i in range(len(data_pages)-1):
-            data_page = data_pages[i]
-            comma_separated_data_pages += data_page + ','
-        comma_separated_data_pages += data_pages[-1]
-        bird_file.write(comma_separated_data_pages + "\n")
-# search_result = reverse_image_search(FILE_LOCATION)
-# data_pages = search_related_images_for_name(search_result)
-# create_email_file(FILE_LOCATION, data_pages)
+        comma_separated_data_pages = ",".join(data_pages)
+        # write the data pages to the file location
+        bird_file.write("\n" + comma_separated_data_pages + "\n")
+        

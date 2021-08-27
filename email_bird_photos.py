@@ -7,27 +7,6 @@ import imghdr
 
 import birdfeeder_constants as bfc
 
-def get_image_data(img_location):
-    """
-        This returns the name, binary, and image type of the image file.
-        
-            Parameters:
-                img_location (string): The file location of the image file.
-            
-            Returns:
-                img_name (string): The name of the image.
-                img_binary (binary): The binary of the image.
-                img_type (string): The type of the image.
-    """
-    img_name = ""
-    img_binary = None
-    img_type = ""
-    with open(img_location, "rb") as img:
-        img_name = img.name
-        img_binary = img.read()
-        img_type = imghdr.what(img_name)
-    return img_name, img_binary, img_type
-
 def send_email():
     """
         This will send the bird images and links to similar birds
@@ -51,33 +30,29 @@ def send_email():
         # logging into the email service
         emailer.login(bfc.SENDER_ADDRESS, bfc.SENDER_PASSWORD)
         # creating the body of the message
-        # the containers for both the image files and webpage links
-        img_files = []
-        webpage_links = []
-        body = "\n\nHello,\nHere are the birds that visited today:\n\n"
+        body = "\n\nHello,\n\nHere are the birds that visited today:\n\n"
         # getting bird images and webpage links from the bird location file
         with open(bfc.BIRD_LOCATION, "r") as bird_file:
+            # getting the webpage links and image file locations
             # every other line is a bird image file
             # the other is one filled with webpage links
-            index = 0
-            for line in bird_file.readlines():
-                if index % 2 == 0:
-                    img_files.append(line.strip())
+            for img_index, line in enumerate(bird_file.readlines()):
+                if img_index % 2 == 0:
+                    current_img = line.strip()
+                    # getting the image's data and type
+                    with open(current_img, "rb") as current_img_file:
+                        img_data = current_img_file.read()
+                        img_type = imghdr.what(current_img)
+                    # adding the image as an attachment to the current message
+                    message.add_attachment(img_data, maintype='image',
+                        subtype=img_type, filename=f"bird_image_{img_index+1}")
                 else:
-                    webpage_links.append(line.strip().split(","))
-                index += 1
-        # adding each attachment to the file
-        for img_index, img_file in enumerate(img_files):
-            # getting the image's name, data, and type
-            img_name, img_binary, img_type = get_image_data(img_file)
-            # adding the image as an attachment to the current message
-            message.add_attachment(img_binary, 
-                        maintype='image', subtype=img_type,
-                        filename=f"bird_image_{img_index+1}")
-            # creating the content of the message
-            body += f"\tFor the bird {img_index + 1}, these links are provided:\n"
-            for webpage_link in webpage_links[img_index]:
-                body += f"\t\t{webpage_link}\n"
+                    webpage_links = line.strip().split(",")
+                    # creating the content of the message
+                    body += f"\tFor bird image {img_index + 1}, " + \
+                        "these are similar images:\n"
+                    for webpage_link in webpage_links:
+                        body += f"\t\t{webpage_link}\n"
         # ending the message
         body += """\nThanks for looking at the birds!\
                     \nWill return with more tomorrow!\
@@ -86,4 +61,8 @@ def send_email():
         message.attach(multipart_body)
         # sending the email to the receiver address
         emailer.send_message(message)
+        # once the email is sent, clear the bird_images_location.txt file
+        # don't want to send a repeated message
+        with open(bfc.BIRD_LOCATION, "w") as clear_file:
+            pass
 send_email()
