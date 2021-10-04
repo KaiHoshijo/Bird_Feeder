@@ -87,4 +87,26 @@ def create_email_file(img_location, data_pages):
         comma_separated_data_pages = ",".join(data_pages)
         # write the data pages to the file location
         bird_file.write("\n" + comma_separated_data_pages + "\n")
-        
+
+def search_bird(img_location):
+    """
+    This function will operate as the key for other files to call
+    and run all the functions above. It will run in the following steps:
+    1) Reverse image search this image
+    2) Get related links to the image
+    3) Append the image location and links to the file
+    In order to prevent any other files from messing up the calls,
+    this function was written.
+    Parameters:
+        img_location (string): This will be the image's location on the disk
+    Return:
+        None
+    """
+    # Reverse image search this image
+    search_result = reverse_image_search(img_location)
+    
+    # Get related links to the image
+    web_pages = search_related_images_for_name(search_result)
+
+    # Append image location and links to the file
+    create_email_file(img_location, web_pages)
